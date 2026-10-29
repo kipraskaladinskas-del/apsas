@@ -1,0 +1,3248 @@
+<!doctype html><html lang="lt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Noir Film Club</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Limelight&family=Hanken+Grotesk:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: phone app shell (max 480px). Film-noir world: silver-screen monochrome, one tungsten-lamp amber accent, typewritten "case file" details, film grain over everything. Single dark theme by design. */
+:root{
+  --night:#0b0b0c;      /* the alley at 2am */
+  --smoke:#16161a;      /* surfaces */
+  --ash:#202026;        /* raised surfaces */
+  --rule:#34343c;       /* hairlines */
+  --silver:#ecebe6;     /* silver-screen white */
+  --fog:#9a9893;        /* secondary text */
+  --lamp:#e2a856;       /* tungsten desk lamp, the one accent */
+  --lamp-ink:#1b1206;
+  --blood:#c4434b;      /* used only for "busy" and cancel */
+  --paper:#f1ece1;      /* tickets, evidence tags */
+  --paper-ink:#141414;
+  --font-title:"Limelight","Didot","Bodoni 72",Georgia,serif;
+  --font-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-type:"Courier Prime","Courier New",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--night);color:var(--silver)}
+body{font-family:var(--font-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--night)}
+.grain{position:fixed;inset:-50%;z-index:90;pointer-events:none;opacity:.07;animation:grain 1.2s steps(6) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-4%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--night);box-shadow:0 0 0 1px var(--smoke)}
+.gut{padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--night) 86%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.top .gut{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.logo{font-family:var(--font-title);font-size:22px;letter-spacing:.28em;line-height:1;background:none;border:0;padding:0}
+.lampchip{font-family:var(--font-type);font-size:12px;display:flex;align-items:center;gap:8px;color:var(--fog);white-space:nowrap}
+.bulb{width:8px;height:8px;border-radius:50%;background:#555}
+.lampchip.on{color:var(--silver)}
+.lampchip.on .bulb{background:var(--lamp);box-shadow:0 0 10px 2px color-mix(in srgb,var(--lamp) 70%,transparent);animation:hum 3s infinite}
+@keyframes hum{0%,100%{opacity:1}47%{opacity:1}48%{opacity:.4}50%{opacity:1}}
+.tablebar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px;background:var(--lamp);color:var(--lamp-ink);font-size:13.5px}
+.tablebar b{font-weight:700}
+.tablebar button{border:1.5px solid var(--lamp-ink);background:transparent;border-radius:99px;padding:6px 12px;font-weight:700;font-size:12.5px;white-space:nowrap}
+
+/* views */
+.view{display:none}
+.view.on{display:block;animation:cut .45s ease}
+@keyframes cut{from{opacity:0;filter:brightness(2.2)}to{opacity:1;filter:none}}
+h1,h2,h3,h4{margin:0;text-wrap:balance;font-weight:400}
+.reel{font-family:var(--font-type);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--lamp)}
+.title{font-family:var(--font-title);font-size:40px;line-height:1.02;letter-spacing:.02em}
+.sub{color:var(--fog);margin:10px 0 0;max-width:42ch}
+.sec{margin-top:36px}
+.head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
+.h3{font-family:var(--font-title);font-size:24px;letter-spacing:.02em}
+.textbtn{background:none;border:0;padding:6px 0;color:var(--lamp);font-family:var(--font-type);font-size:13px;text-decoration:underline;text-underline-offset:4px}
+
+/* hero */
+.hero{position:relative;height:500px;max-height:78vh;min-height:420px;overflow:hidden;isolation:isolate}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;z-index:-2}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(11,11,12,.35) 0%,transparent 30%,transparent 45%,rgba(11,11,12,.92) 82%,var(--night) 100%)}
+.hero .gut{position:absolute;left:0;right:0;bottom:0;padding-block:0 26px}
+.hero h1{font-family:var(--font-title);font-size:clamp(72px,24vw,112px);letter-spacing:.12em;line-height:.88;margin-left:-.04em;text-shadow:0 0 40px rgba(0,0,0,.6);animation:flickin 1.6s ease-out both}
+@keyframes flickin{0%{opacity:0}8%{opacity:.8}10%{opacity:.1}14%{opacity:.9}17%{opacity:.3}24%,100%{opacity:1}}
+.typed{font-family:var(--font-type);font-size:14.5px;color:var(--silver);margin:14px 0 0;max-width:34ch;min-height:3em}
+.cta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.btn{border:0;border-radius:4px;padding:14px 16px;font-weight:600;font-size:14.5px;letter-spacing:.01em;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,background .2s,box-shadow .2s}
+.btn:active{transform:scale(.97)}
+.btn-lamp{background:var(--lamp);color:var(--lamp-ink);box-shadow:0 8px 30px -10px color-mix(in srgb,var(--lamp) 70%,transparent)}
+.btn-line{background:rgba(236,235,230,.04);color:var(--silver);border:1px solid rgba(236,235,230,.35)}
+.btn-wide{width:100%}
+
+/* tonight card */
+.tonight{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding-block:16px}
+.tonight .clock{font-family:var(--font-type);font-size:26px;line-height:1;color:var(--lamp);font-variant-numeric:tabular-nums}
+.tonight .clock small{display:block;font-size:10.5px;color:var(--fog);letter-spacing:.14em;margin-top:5px}
+.tonight b{display:block;font-weight:600}
+.tonight span{color:var(--fog);font-size:13px}
+.tonight .btn{padding:10px 14px;font-size:13px}
+
+/* program (events) as film credits */
+.prog{display:flex;flex-direction:column}
+.pitem{display:grid;grid-template-columns:62px 1fr auto;gap:14px;align-items:center;padding:16px 0;border-bottom:1px solid var(--rule);background:none;border-left:0;border-right:0;border-top:0;text-align:left;width:100%}
+.pitem:first-child{border-top:1px solid var(--rule)}
+.pitem .d{font-family:var(--font-type);font-size:11.5px;letter-spacing:.1em;color:var(--fog);text-transform:uppercase;line-height:1.3}
+.pitem .d b{display:block;font-size:24px;color:var(--silver);letter-spacing:0;font-weight:400;font-family:var(--font-title)}
+.pitem h4{font-weight:600;font-size:15.5px}
+.pitem p{margin:2px 0 0;color:var(--fog);font-size:13px}
+.arrow{width:34px;height:34px;border-radius:50%;border:1px solid var(--rule);display:grid;place-items:center;color:var(--lamp)}
+
+/* filmstrip of stills */
+.strip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:-18px;padding:12px 18px;background:#050505;scrollbar-width:none;position:relative}
+.strip::-webkit-scrollbar{display:none}
+.strip::before,.strip::after{content:"";position:sticky;flex:0 0 0}
+.frame{flex:0 0 64%;scroll-snap-align:center;position:relative;aspect-ratio:4/3;border:0;padding:0;background:#000;border-radius:2px;overflow:hidden;max-width:100%}
+.frame canvas{width:100%;height:100%;display:block}
+.frame .cap{position:absolute;left:8px;bottom:6px;font-family:var(--font-type);font-size:11px;color:var(--silver);letter-spacing:.06em;text-shadow:0 1px 4px #000}
+.sprockets{height:10px;margin-inline:-18px;background:#050505 radial-gradient(circle at 9px 5px,var(--night) 2.4px,transparent 3px) 0 0/22px 10px repeat-x}
+
+/* quote */
+.quote{font-family:var(--font-title);font-size:27px;line-height:1.2;letter-spacing:.01em}
+.quote cite{display:block;font-family:var(--font-type);font-style:normal;font-size:12.5px;color:var(--fog);margin-top:12px;letter-spacing:.06em}
+
+/* socials */
+.socials{display:flex;flex-direction:column}
+.soc{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--rule);color:var(--silver);text-decoration:none}
+.soc:first-child{border-top:1px solid var(--rule)}
+.soc .ic{width:40px;height:40px;border-radius:50%;background:var(--smoke);display:grid;place-items:center}
+.soc .ic svg{width:19px;height:19px}
+.soc b{font-weight:600;display:block}
+.soc small{color:var(--fog);font-family:var(--font-type);font-size:12px}
+.soc .go{color:var(--fog);font-family:var(--font-type);font-size:12px}
+.soc:hover .go{color:var(--lamp)}
+
+/* MENU: the screenplay */
+.menuhead{padding-top:26px}
+.searchwrap{position:relative;margin-top:20px}
+.searchwrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--fog)}
+.search{width:100%;background:var(--smoke);border:1px solid var(--rule);border-radius:4px;padding:13px 14px 13px 40px}
+.search::placeholder{color:var(--fog)}
+.acts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:14px -18px 0;padding:0 18px 2px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 50px);z-index:5;background:var(--night);padding-block:10px}
+.acts::-webkit-scrollbar{display:none}
+.act{flex:0 0 auto;border:1px solid var(--rule);background:transparent;border-radius:99px;padding:8px 14px;font-size:13.5px;color:var(--fog);transition:all .2s}
+.act[aria-pressed="true"]{background:var(--silver);color:var(--night);border-color:var(--silver)}
+.scene-h{display:flex;align-items:baseline;gap:12px;margin:30px 0 4px}
+.scene-h .no{font-family:var(--font-type);font-size:12px;color:var(--lamp);letter-spacing:.14em}
+.scene-h h3{font-family:var(--font-title);font-size:26px}
+.scene-h p{margin:0;color:var(--fog);font-size:12.5px;font-family:var(--font-type)}
+.dish{padding:15px 0;border-bottom:1px solid var(--rule)}
+.dish .line{display:flex;align-items:baseline;gap:8px}
+.dish h4{font-weight:600;font-size:16px;flex:0 1 auto;min-width:0}
+.dish .dots{flex:1;border-bottom:1.5px dotted #4a4a52;transform:translateY(-4px);min-width:16px}
+.dish .pr{font-family:var(--font-type);font-size:16px;color:var(--silver);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dish p{margin:4px 0 0;color:var(--fog);font-size:13.5px;max-width:40ch}
+.marks{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.mark{font-family:var(--font-type);font-size:11px;padding:2px 7px;border:1px solid var(--rule);border-radius:2px;color:var(--fog)}
+.mark.star{border-color:color-mix(in srgb,var(--lamp) 50%,transparent);color:var(--lamp)}
+.nores{font-family:var(--font-type);color:var(--fog);text-align:center;padding:40px 0}
+
+/* RESERVE */
+.tabs{display:grid;grid-template-columns:1fr 1fr;margin-top:22px;border-bottom:1px solid var(--rule)}
+.tabs button{background:none;border:0;padding:12px 0;font-weight:600;color:var(--fog);position:relative;font-size:15px}
+.tabs button[aria-selected="true"]{color:var(--silver)}
+.tabs button[aria-selected="true"]::after{content:"";position:absolute;left:20%;right:20%;bottom:-1px;height:2px;background:var(--lamp);box-shadow:0 0 12px var(--lamp)}
+.step{margin-top:28px}
+.slabel{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
+.slabel span{font-family:var(--font-type);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--fog)}
+.slabel span i{font-style:normal;color:var(--lamp);margin-right:6px}
+.slabel b{font-weight:500;font-size:13.5px;text-align:right}
+.days{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-18px;padding-inline:18px;scroll-snap-type:x proximity}
+.days::-webkit-scrollbar{display:none}
+.day{flex:0 0 56px;scroll-snap-align:start;border:1px solid var(--rule);background:var(--smoke);border-radius:4px;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.day small{font-family:var(--font-type);font-size:10.5px;color:var(--fog);text-transform:uppercase}
+.day b{font-family:var(--font-title);font-size:22px;font-weight:400}
+.day[aria-pressed="true"]{background:var(--silver);color:var(--night);border-color:var(--silver)}
+.day[aria-pressed="true"] small{color:#555}
+.slots{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.slot{border:1px solid var(--rule);background:var(--smoke);border-radius:4px;padding:10px 0;font-family:var(--font-type);font-size:13.5px;font-variant-numeric:tabular-nums}
+.slot[aria-pressed="true"]{background:var(--lamp);border-color:var(--lamp);color:var(--lamp-ink);font-weight:700}
+.slot:disabled{color:#55555c;text-decoration:line-through;cursor:not-allowed;background:transparent}
+.counter{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--rule);border-radius:4px;background:var(--smoke)}
+.counter button{width:56px;height:52px;border:0;background:none;font-size:22px;color:var(--lamp)}
+.counter output{font-family:var(--font-title);font-size:22px}
+.plan{position:relative;width:100%;max-width:100%;aspect-ratio:1/1;background:#0f0f12;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.plan .floorlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(255,255,255,.025) 27px 28px),repeating-linear-gradient(90deg,transparent 0 27px,rgba(255,255,255,.025) 27px 28px)}
+.plan .barc{position:absolute;left:5%;right:24%;top:4%;height:8%;border:1px solid #3c3c44;border-radius:3px;background:#17171b;display:grid;place-items:center;font-family:var(--font-type);font-size:10px;letter-spacing:.3em;color:var(--fog)}
+.plan .stage{position:absolute;right:4%;top:4%;width:16%;height:20%;border:1px dashed #3c3c44;border-radius:50% 50% 4px 4px;display:grid;place-items:center;font-family:var(--font-type);font-size:9.5px;letter-spacing:.2em;color:var(--fog);text-align:center}
+.plan .win{position:absolute;left:0;top:26%;bottom:6%;width:5px;background:repeating-linear-gradient(180deg,var(--lamp) 0 22px,transparent 22px 30px);opacity:.45}
+.plan .door{position:absolute;bottom:0;right:10%;width:14%;height:4px;background:var(--silver);opacity:.4}
+.plan .lbl{position:absolute;font-family:var(--font-type);font-size:9.5px;letter-spacing:.18em;color:#6a6a72;text-transform:uppercase}
+.tbl{position:absolute;transform:translate(-50%,-50%);border:1.5px solid #8a8a92;background:#0b0b0c;color:var(--silver);display:grid;place-items:center;font-family:var(--font-type);font-size:12px;line-height:1.05;padding:0;transition:background .2s,border-color .2s,box-shadow .25s}
+.tbl.r{border-radius:50%}.tbl.s{border-radius:5px}
+.tbl small{display:block;font-size:9px;color:var(--fog)}
+.tbl.busy{border-color:#3a3a40;color:#4d4d55;background:repeating-linear-gradient(45deg,#121214 0 4px,#0b0b0c 4px 8px);cursor:not-allowed}
+.tbl.busy small{color:#4d4d55}
+.tbl.small{opacity:.4}
+.tbl.wait{opacity:.55}
+.tbl[aria-pressed="true"]{background:var(--lamp);border-color:var(--lamp);color:var(--lamp-ink);box-shadow:0 0 0 6px color-mix(in srgb,var(--lamp) 22%,transparent),0 0 30px color-mix(in srgb,var(--lamp) 55%,transparent);font-weight:700}
+.tbl[aria-pressed="true"] small{color:var(--lamp-ink)}
+.key{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--fog);margin-top:10px;font-family:var(--font-type)}
+.key i{display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid #8a8a92;margin-right:6px;vertical-align:-1px}
+.key .k-sel{background:var(--lamp);border-color:var(--lamp)}
+.key .k-busy{background:repeating-linear-gradient(45deg,#3a3a40 0 2px,transparent 2px 4px);border-color:#3a3a40}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fld{display:flex;flex-direction:column;gap:7px;min-width:0}
+.fld label{font-family:var(--font-type);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--fog)}
+.in,.ta,.sel{width:100%;min-width:0;background:var(--smoke);border:1px solid var(--rule);border-radius:4px;padding:13px 14px;transition:border-color .2s}
+.in:focus,.ta:focus,.sel:focus{border-color:var(--lamp);outline:none}
+.in::placeholder,.ta::placeholder{color:#64646c}
+.ta{min-height:80px;resize:vertical}
+.err{color:var(--blood);font-size:13px;min-height:1.2em;font-family:var(--font-type)}
+.recap{font-family:var(--font-type);font-size:13px;color:var(--fog);text-align:center;margin:10px 0 0}
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kind{border:1px solid var(--rule);background:var(--smoke);border-radius:4px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:3px}
+.kind b{font-weight:600;font-size:14.5px}
+.kind small{color:var(--fog);font-size:12px}
+.kind[aria-pressed="true"]{border-color:var(--lamp);background:color-mix(in srgb,var(--lamp) 10%,var(--smoke))}
+.range{width:100%;accent-color:var(--lamp);height:28px}
+.ticks{display:flex;justify-content:space-between;font-family:var(--font-type);font-size:11px;color:#6a6a72}
+.pk{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;width:100%;border:1px solid var(--rule);background:var(--smoke);border-radius:4px;padding:14px;text-align:left}
+.pk + .pk{margin-top:8px}
+.pk .rb{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--fog)}
+.pk[aria-pressed="true"]{border-color:var(--lamp)}
+.pk[aria-pressed="true"] .rb{border:5.5px solid var(--lamp)}
+.pk b{display:block;font-weight:600}
+.pk small{color:var(--fog);font-size:12.5px}
+.pk .pr{font-family:var(--font-type);font-size:14px;white-space:nowrap}
+.addons{border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.addon{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;background:var(--smoke);border-bottom:1px solid var(--rule)}
+.addon:last-child{border-bottom:0}
+.addon label{flex:1;cursor:pointer;display:flex;flex-direction:column}
+.addon small{font-family:var(--font-type);color:var(--fog);font-size:12px}
+.tog{appearance:none;-webkit-appearance:none;width:44px;height:26px;border-radius:99px;background:#2a2a30;position:relative;cursor:pointer;flex:0 0 auto;transition:background .2s}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--fog);transition:transform .2s,background .2s}
+.tog:checked{background:var(--lamp)}
+.tog:checked::after{transform:translateX(18px);background:var(--lamp-ink)}
+.bill{border:1px dashed #4a4a52;border-radius:4px;padding:16px;font-family:var(--font-type);font-size:13px;color:var(--fog)}
+.bill .row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.bill .row span:last-child{color:var(--silver);font-variant-numeric:tabular-nums}
+.bill .sum{border-top:1px dashed #4a4a52;margin-top:8px;padding-top:10px;display:flex;justify-content:space-between;align-items:baseline}
+.bill .sum b{font-family:var(--font-title);font-size:30px;color:var(--lamp);font-weight:400}
+
+/* my bookings: case files */
+.case{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:16px;background:var(--smoke);border:1px solid var(--rule);border-radius:4px;position:relative;overflow:hidden}
+.case + .case{margin-top:10px}
+.case::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--lamp)}
+.case .no{font-family:var(--font-type);font-size:12px;color:var(--lamp);letter-spacing:.12em}
+.case h4{font-weight:600;font-size:15px}
+.case p{margin:0;color:var(--fog);font-size:13px}
+.case .ops{grid-column:2;grid-row:1/4;display:flex;flex-direction:column;gap:6px;align-items:stretch;justify-content:center}
+.mini{border:1px solid var(--rule);background:transparent;border-radius:3px;padding:7px 12px;font-size:12.5px;font-family:var(--font-type)}
+.mini.x{color:var(--blood);border-color:color-mix(in srgb,var(--blood) 40%,transparent)}
+.empty-case{border:1px dashed var(--rule);border-radius:4px;padding:18px;color:var(--fog);font-family:var(--font-type);font-size:13px;text-align:center}
+
+/* GALLERY */
+.gal{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:22px}
+.still{position:relative;padding:0;border:0;background:#000;aspect-ratio:3/4;overflow:hidden;border-radius:2px;max-width:100%}
+.still.w{grid-column:span 2;aspect-ratio:16/9}
+.still canvas,.still img,.still video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease}
+.still:hover canvas,.still:hover img{transform:scale(1.04)}
+.still .cap{position:absolute;left:0;right:0;bottom:0;padding:26px 10px 9px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-family:var(--font-type);font-size:11.5px;text-align:left;color:var(--silver);letter-spacing:.04em}
+.still .num{position:absolute;top:8px;left:9px;font-family:var(--font-type);font-size:10px;color:rgba(236,235,230,.7);letter-spacing:.1em}
+.playb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;border:1.5px solid rgba(236,235,230,.8);display:grid;place-items:center;background:rgba(0,0,0,.35);backdrop-filter:blur(4px)}
+.playb::after{content:"";border-left:15px solid var(--silver);border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+.add{border:1.5px dashed var(--rule);border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:3/4;cursor:pointer;color:var(--fog);font-size:13px;text-align:center;padding:12px}
+.add b{font-family:var(--font-title);font-size:34px;color:var(--lamp);font-weight:400;line-height:1}
+.add input{display:none}
+
+/* QR / APP */
+.evidence{background:var(--paper);color:var(--paper-ink);border-radius:3px;padding:22px 22px 18px;position:relative;margin-top:24px;box-shadow:0 30px 60px -30px rgba(0,0,0,.9);transform:rotate(-1.2deg)}
+.evidence::before{content:"";position:absolute;top:14px;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--night);box-shadow:inset 0 0 0 3px #bdb5a4}
+.evidence .tagline{display:flex;justify-content:space-between;font-family:var(--font-type);font-size:11.5px;letter-spacing:.12em;border-bottom:1.5px solid var(--paper-ink);padding:14px 0 8px;margin-bottom:16px}
+.evidence .qr{width:min(230px,64vw);max-width:100%;margin:0 auto}
+.evidence .qr svg{width:100%;height:auto;display:block}
+.evidence h3{font-family:var(--font-title);font-size:34px;text-align:center;letter-spacing:.24em;margin-top:12px}
+.evidence p{font-family:var(--font-type);text-align:center;margin:4px 0 0;font-size:13px}
+.copyrow{display:flex;gap:8px;margin-top:16px}
+.copyrow input{flex:1;min-width:0;background:#e3dccd;border:0;border-radius:3px;padding:11px;font-family:var(--font-type);font-size:11.5px;color:var(--paper-ink)}
+.copyrow button{background:var(--paper-ink);color:var(--paper);border:0;border-radius:3px;padding:0 16px;font-weight:600;font-size:13px}
+.howto{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.howto li{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--rule);color:var(--fog);font-size:14px}
+.howto li:first-child{border-top:1px solid var(--rule)}
+.howto li span:first-child{font-family:var(--font-title);font-size:26px;color:var(--lamp);line-height:1}
+.howto b{color:var(--silver);font-weight:600}
+.tpick{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px}
+.tpick button{border:1px solid var(--rule);background:var(--smoke);border-radius:3px;padding:9px 0;font-family:var(--font-type);font-size:13px}
+.tpick button[aria-pressed="true"]{background:var(--lamp);color:var(--lamp-ink);border-color:var(--lamp);font-weight:700}
+.tent{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;background:var(--paper);color:var(--paper-ink);border-radius:3px;overflow:hidden}
+.tent .l{background:var(--paper-ink);color:var(--paper);padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.tent .l .nr{font-family:var(--font-type);font-size:11px;letter-spacing:.16em;color:var(--lamp)}
+.tent .l h4{font-family:var(--font-title);font-size:28px;line-height:1}
+.tent .l p{margin:0;font-size:12px;color:#bdb8ad}
+.tent .r{padding:14px;display:grid;place-items:center}
+.tent .r svg{width:100%;height:auto;display:block}
+.dossier{border-top:1px solid var(--rule)}
+.dossier div{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--rule);font-size:14px}
+.dossier span{color:var(--fog);font-family:var(--font-type);font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;padding-top:2px}
+.dossier b{font-weight:500;text-align:right;user-select:all}
+.fine{font-family:var(--font-type);font-size:11.5px;color:#6a6a72;margin:18px 0 0}
+
+/* BOTTOM NAV */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:50;pointer-events:none}
+.dock .in{pointer-events:auto;max-width:480px;margin:0 auto;background:rgba(14,14,16,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(4,1fr);padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+.tab{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 6px;color:#7c7b77;font-size:10.5px;font-weight:500;letter-spacing:.03em;position:relative;touch-action:manipulation;min-height:54px}
+.tab svg{width:23px;height:23px;transition:transform .2s}
+.tab[aria-current="page"]{color:var(--silver)}
+.tab[aria-current="page"] svg{color:var(--lamp);transform:translateY(-1px)}
+.tab[aria-current="page"]::after{content:"";position:absolute;top:-6px;left:50%;width:36px;height:22px;margin-left:-18px;background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--lamp) 55%,transparent),transparent 70%);pointer-events:none}
+.tab.main .disc{width:46px;height:30px;border-radius:99px;background:var(--lamp);color:var(--lamp-ink);display:grid;place-items:center;box-shadow:0 6px 20px -6px color-mix(in srgb,var(--lamp) 80%,transparent)}
+.tab.main .disc svg{width:20px;height:20px}
+.tab.main{gap:3px}
+.tab.main svg{color:var(--lamp-ink)!important}
+.tab.main[aria-current="page"]::after{display:none}
+
+/* sheet */
+.veil{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:480px;max-height:92vh;overflow:auto;background:var(--smoke);border-top:1px solid var(--rule);border-radius:14px 14px 0 0;padding:20px max(18px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));animation:rise .35s cubic-bezier(.2,.9,.3,1)}
+@keyframes rise{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--rule);margin:0 auto 18px}
+.ticket{background:var(--paper);color:var(--paper-ink);border-radius:4px;margin:18px 0;position:relative;overflow:hidden}
+.ticket .tt{background:var(--paper-ink);color:var(--paper);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-type);font-size:11.5px;letter-spacing:.16em}
+.ticket .tt b{font-family:var(--font-title);font-size:20px;letter-spacing:.24em;font-weight:400}
+.ticket .tb{padding:16px;display:grid;grid-template-columns:1fr 132px;gap:14px;align-items:center}
+.ticket .qr svg{width:100%;height:auto;display:block}
+.ticket dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:13px}
+.ticket dt{font-family:var(--font-type);color:#6b665c;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;padding-top:1px}
+.ticket dd{margin:0;font-weight:600}
+.ticket .perf{border-top:2px dashed #c9c1b0;margin:0 14px;position:relative}
+.ticket .perf::before,.ticket .perf::after{content:"";position:absolute;top:-10px;width:20px;height:20px;border-radius:50%;background:var(--smoke)}
+.ticket .perf::before{left:-24px}.ticket .perf::after{right:-24px}
+.ticket .tf{padding:12px 16px 14px;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-type)}
+.ticket .tf .code{font-size:20px;letter-spacing:.2em;font-weight:700}
+.ticket .tf small{font-size:11px;color:#6b665c;letter-spacing:.1em}
+.stamp{display:inline-block;font-family:var(--font-type);font-weight:700;font-size:13px;letter-spacing:.2em;color:var(--lamp);border:2px solid var(--lamp);padding:4px 10px;transform:rotate(-4deg);margin-bottom:10px}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:80;background:#000;display:flex;flex-direction:column}
+.lb-top{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));font-family:var(--font-type);font-size:12.5px;color:var(--fog)}
+.lb-stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:pan-y}
+.lb-frame{width:min(94vw,760px);aspect-ratio:4/3;max-height:72vh;position:relative;max-width:100%}
+.lb-frame canvas,.lb-frame img,.lb-frame video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.lb-arrow{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:1px solid #333;background:rgba(0,0,0,.6);font-size:22px;z-index:2;color:var(--silver)}
+.lb-l{left:max(10px,env(safe-area-inset-left,0px))}.lb-r{right:max(10px,env(safe-area-inset-right,0px))}
+.lb-cap{text-align:center;padding:16px 16px calc(22px + env(safe-area-inset-bottom,0px));font-family:var(--font-title);font-size:20px;letter-spacing:.02em}
+.round{width:40px;height:40px;border-radius:50%;border:1px solid #333;background:#111;font-size:16px;color:var(--silver)}
+
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);z-index:95;background:var(--paper);color:var(--paper-ink);font-family:var(--font-type);font-size:13.5px;padding:11px 18px;border-radius:3px;opacity:0;pointer-events:none;transition:all .3s;max-width:calc(100% - 36px);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style></head><body>
+
+<div class="grain" id="grain" aria-hidden="true"></div>
+
+<div class="app">
+  <header class="top">
+    <div class="gut">
+      <button class="logo" type="button" data-go="pradzia" aria-label="Noir pradžia">NOIR</button>
+      <div class="lampchip" id="lamp"><span class="bulb"></span><span id="lampTxt">—</span></div>
+    </div>
+    <div class="tablebar gut" id="tablebar" hidden>
+      <span>Jūs prie <b id="tableNo">staliuko</b></span>
+      <button type="button" id="callWaiter">Kviesti padavėją</button>
+    </div>
+  </header>
+
+  <main>
+  <!-- ============ PRADŽIA ============ -->
+  <section class="view" id="v-pradzia" aria-label="Pradžia">
+    <div class="hero">
+      <canvas id="heroCanvas" aria-hidden="true"></canvas>
+      <div class="gut">
+        <div class="reel">Vilnius · Pilies g. 12 · nuo 18:00</div>
+        <h1>NOIR</h1>
+        <p class="typed" id="typed">Lietus už lango. Žvakė ant stalo. Trio pradeda groti dvidešimtą.</p>
+        <div class="cta">
+          <button class="btn btn-lamp" type="button" data-go="rezervuoti" data-mode="stalas">Staliukas</button>
+          <button class="btn btn-line" type="button" data-go="rezervuoti" data-mode="svente">Šventė</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="gut">
+      <div class="tonight" id="tonight"></div>
+
+      <div class="sec">
+        <div class="head"><h2 class="h3">Programa</h2><span class="reel">Kas savaitę</span></div>
+        <div class="prog" id="prog"></div>
+      </div>
+
+      <div class="sec">
+        <div class="head"><h2 class="h3">Šefo pasirinkimas</h2><button class="textbtn" type="button" data-go="meniu">Visas meniu →</button></div>
+        <div id="chef"></div>
+      </div>
+
+      <blockquote class="quote sec" style="margin-inline:0">„Geriausi pokalbiai prasideda po antros taurės ir baigiasi su paskutine daina.“<cite>Iš svečių knygos, 2025 m. lapkritis</cite></blockquote>
+
+      <div class="sec">
+        <div class="head"><h2 class="h3">Sekite mus</h2><span class="reel">Socialiniai tinklai</span></div>
+        <div class="socials" id="socials"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MENIU ============ -->
+  <section class="view gut" id="v-meniu" aria-label="Meniu">
+    <div class="menuhead">
+      <div class="reel">Rudens scenarijus · 2026</div>
+      <h2 class="title">Meniu</h2>
+      <p class="sub">Vakarienė vyksta trimis veiksmais. Kainos eurais, apie alergenus paklauskite padavėjo.</p>
+    </div>
+    <div class="searchwrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input class="search" id="q" type="search" placeholder="Ieškoti: antis, šokoladas…" aria-label="Ieškoti meniu">
+    </div>
+    <div class="acts" id="acts" role="toolbar" aria-label="Meniu dalys"></div>
+    <div id="menu"></div>
+  </section>
+
+  <!-- ============ REZERVUOTI ============ -->
+  <section class="view gut" id="v-rezervuoti" aria-label="Rezervacija">
+    <div class="menuhead">
+      <div class="reel">Rezervacija</div>
+      <h2 class="title">Jūsų vieta salėje</h2>
+    </div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tabStalas" aria-selected="true">Staliukas</button>
+      <button type="button" role="tab" id="tabSvente" aria-selected="false">Šventė</button>
+    </div>
+
+    <form id="fStalas" novalidate>
+      <div class="step">
+        <div class="slabel"><span><i>1</i>Data</span><b id="lDate"></b></div>
+        <div class="days" id="days"></div>
+      </div>
+      <div class="step">
+        <div class="slabel"><span><i>2</i>Svečiai</span></div>
+        <div class="counter"><button type="button" id="gm" aria-label="Mažiau svečių">−</button><output id="gOut">2 svečiai</output><button type="button" id="gp" aria-label="Daugiau svečių">+</button></div>
+      </div>
+      <div class="step">
+        <div class="slabel"><span><i>3</i>Laikas</span><b id="lTime">pasirinkite</b></div>
+        <div class="slots" id="slots"></div>
+      </div>
+      <div class="step">
+        <div class="slabel"><span><i>4</i>Staliukas</span><b id="lTable"></b></div>
+        <div class="plan" id="plan"></div>
+        <div class="key"><span><i></i>Laisvas</span><span><i class="k-sel"></i>Jūsų</span><span><i class="k-busy"></i>Užimtas</span></div>
+      </div>
+      <div class="step">
+        <div class="slabel"><span><i>5</i>Kontaktai</span></div>
+        <div class="pair">
+          <div class="fld"><label for="sName">Vardas</label><input class="in" id="sName" autocomplete="given-name" placeholder="Vardas"></div>
+          <div class="fld"><label for="sPhone">Telefonas</label><input class="in" id="sPhone" type="tel" autocomplete="tel" placeholder="+370 6__ _____"></div>
+        </div>
+        <div class="fld" style="margin-top:10px"><label for="sNote">Pageidavimai</label><textarea class="ta" id="sNote" placeholder="Gimtadienis, vieta arčiau scenos, vaikiška kėdutė…"></textarea></div>
+      </div>
+      <div class="err" id="sErr" role="alert" style="margin-top:12px"></div>
+      <button class="btn btn-lamp btn-wide" type="submit">Patvirtinti rezervaciją</button>
+      <p class="recap" id="recap"></p>
+    </form>
+
+    <form id="fSvente" novalidate hidden>
+      <div class="step">
+        <div class="slabel"><span><i>1</i>Proga</span></div>
+        <div class="kinds" id="kinds"></div>
+      </div>
+      <div class="step">
+        <div class="slabel"><span><i>2</i>Svečiai</span><b id="eGOut">30 svečių</b></div>
+        <input class="range" id="eG" type="range" min="10" max="80" step="2" value="30" aria-label="Svečių skaičius">
+        <div class="ticks"><span>10</span><span>30</span><span>50</span><span>80</span></div>
+      </div>
+      <div class="step">
+        <div class="slabel"><span><i>3</i>Meniu</span></div>
+        <div id="pkgs"></div>
+      </div>
+      <div class="step">
+        <div class="slabel"><span><i>4</i>Priedai</span></div>
+        <div class="addons" id="addons"></div>
+      </div>
+      <div class="step">
+        <div class="slabel"><span><i>5</i>Kada ir kas</span></div>
+        <div class="pair">
+          <div class="fld"><label for="eDate">Data</label><input class="in" id="eDate" type="date"></div>
+          <div class="fld"><label for="eTime">Pradžia</label><select class="sel" id="eTime"><option>14:00</option><option>16:00</option><option selected>18:00</option><option>19:00</option><option>20:00</option></select></div>
+        </div>
+        <div class="pair" style="margin-top:10px">
+          <div class="fld"><label for="eName">Vardas</label><input class="in" id="eName" placeholder="Vardas"></div>
+          <div class="fld"><label for="ePhone">Telefonas</label><input class="in" id="ePhone" type="tel" placeholder="+370 6__ _____"></div>
+        </div>
+      </div>
+      <div class="step bill" id="bill"></div>
+      <div class="err" id="eErr" role="alert" style="margin-top:12px"></div>
+      <button class="btn btn-lamp btn-wide" type="submit">Siųsti užklausą</button>
+    </form>
+
+    <div class="sec">
+      <div class="head"><h2 class="h3">Mano rezervacijos</h2><span class="reel" id="myN"></span></div>
+      <div id="mine"></div>
+    </div>
+  </section>
+
+  <!-- ============ QR ============ -->
+  <section class="view gut" id="v-qr" aria-label="Programėlė ir QR">
+    <div class="menuhead">
+      <div class="reel">Programėlė</div>
+      <h2 class="title">Noir kišenėje</h2>
+      <p class="sub">Nukreipkite telefono kamerą į kodą ir atsidarys Noir svetainė. Nieko diegti nereikia.</p>
+    </div>
+    <div class="evidence">
+      <div class="tagline"><span>BYLA NR. 001</span><span>ĮRODYMAS: A</span></div>
+      <div class="qr" id="appQr" role="img" aria-label="QR kodas į Noir svetainę"></div>
+      <h3>NOIR</h3>
+      <p>kipraskaladinskas1.wixsite.com/noir</p>
+      <div class="copyrow"><input id="appUrl" readonly aria-label="Svetainės nuoroda"><button type="button" id="copy">Kopijuoti</button></div>
+    </div>
+
+    <div class="sec">
+      <div class="head"><h2 class="h3">Į pradžios ekraną</h2></div>
+      <ol class="howto">
+        <li><span>1</span><span><b>Nuskenuokite QR</b> kamera arba atidarykite nuorodą.</span></li>
+        <li><span>2</span><span><b>iPhone:</b> „Bendrinti“ → „Įtraukti į pradžios ekraną“.</span></li>
+        <li><span>3</span><span><b>Android:</b> Chrome meniu ⋮ → „Įtraukti į pagrindinį ekraną“.</span></li>
+      </ol>
+    </div>
+
+    <div class="sec">
+      <div class="head"><h2 class="h3">QR ant staliuko</h2></div>
+      <p class="sub" style="margin-top:0">Svečias nuskenuoja kodą ant stalo: atsidaro meniu su staliuko numeriu ir mygtuku „Kviesti padavėją“. Pasirinkite staliuką ir pažiūrėkite stovelį.</p>
+      <div class="tpick" id="tpick"></div>
+      <div class="tent">
+        <div class="l"><div class="nr" id="tentNr">STALIUKAS 01</div><h4>Meniu čia</h4><p>Nuskenuokite: meniu, sąskaita ir padavėjas be laukimo.</p></div>
+        <div class="r" id="tentQr"></div>
+      </div>
+      <button class="btn btn-line btn-wide" type="button" id="tryTable" style="margin-top:12px">Išbandyti kaip svečias</button>
+    </div>
+
+    <div class="sec">
+      <div class="head"><h2 class="h3">Kontaktai</h2></div>
+      <div class="dossier">
+        <div><span>Adresas</span><b>Pilies g. 12, Vilnius</b></div>
+        <div><span>Telefonas</span><b>+370 600 12 345</b></div>
+        <div><span>El. paštas</span><b>labas@noir.lt</b></div>
+        <div><span>Pr–Kt</span><b>12:00–23:00</b></div>
+        <div><span>Pn–Št</span><b>12:00–01:00</b></div>
+        <div><span>Sk</span><b>12:00–22:00</b></div>
+      </div>
+      <p class="fine">Restoranas, adresas ir kontaktai yra pavyzdiniai, sukurti mokomajam projektui.</p>
+    </div>
+  </section>
+  </main>
+</div>
+
+<nav class="dock" aria-label="Pagrindinis meniu">
+  <div class="in">
+    <button type="button" class="tab" data-go="pradzia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5v-5.5H9V20H4z"/></svg>Pradžia</button>
+    <button type="button" class="tab" data-go="meniu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 3v7a2 2 0 0 0 2 2v9M11 3v7a2 2 0 0 1-2 2M7 3v4M11 3v4M9 3v4M17 21V3c-2.2 1.2-3.3 4-3.3 8.5H17"/></svg>Meniu</button>
+    <button type="button" class="tab main" data-go="rezervuoti"><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M12 13v4M10 15h4"/></svg></span>Rezervuoti</button>
+    <button type="button" class="tab" data-go="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v1.5M14 20h1.5M18 18h3v3"/></svg>QR</button>
+  </div>
+</nav>
+
+<div class="veil" id="veil" hidden role="dialog" aria-modal="true" aria-labelledby="shTitle"><div class="sheet" id="sheet"></div></div>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Kadras">
+  <div class="lb-top"><span id="lbN"></span><button class="round" type="button" id="lbX" aria-label="Uždaryti">✕</button></div>
+  <div class="lb-stage" id="lbS">
+    <button class="lb-arrow lb-l" type="button" id="lbP" aria-label="Ankstesnis">‹</button>
+    <div class="lb-frame" id="lbF"></div>
+    <button class="lb-arrow lb-r" type="button" id="lbNx" aria-label="Kitas">›</button>
+  </div>
+  <div class="lb-cap" id="lbC"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+</script>
+<script>
+(function(){
+"use strict";
+var APP_URL="https://kipraskaladinskas1.wixsite.com/noir";
+var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+var REDUCED=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+var DOW=["Sk","Pr","An","Tr","Kt","Pn","Št"], DOWL=["sekmadienis","pirmadienis","antradienis","trečiadienis","ketvirtadienis","penktadienis","šeštadienis"];
+var MON=["sausio","vasario","kovo","balandžio","gegužės","birželio","liepos","rugpjūčio","rugsėjo","spalio","lapkričio","gruodžio"];
+
+function store(k,v){try{if(v===undefined){var r=localStorage.getItem(k);return r?JSON.parse(r):null}localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return null}}
+function toast(m){var t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove("show")},2600)}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function ascii(s){return String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\x20-\x7E]/g,"")}
+function hsh(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function fromIso(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+function nice(s){var d=fromIso(s);return d.getDate()+" "+MON[d.getMonth()]+", "+DOWL[d.getDay()]}
+function eur(n){return n.toLocaleString("lt-LT")+" €"}
+function sv(n){var a=n%10,b=n%100;if(a===1&&b!==11)return n+" svečias";if(a>=2&&(b<10||b>=20))return n+" svečiai";return n+" svečių"}
+function pad2(n){return String(n).padStart(2,"0")}
+
+/* ================= QR ================= */
+function qrSvg(text,dark,light){
+  dark=dark||"#141414";light=light||"#f1ece1";
+  if(typeof qrcode!=="function")return '<svg viewBox="0 0 10 10"><rect width="10" height="10" fill="'+light+'"/><text x="5" y="5.6" font-size="1.4" text-anchor="middle" fill="'+dark+'">QR</text></svg>';
+  var q=qrcode(0,"M");q.addData(ascii(text));q.make();
+  var n=q.getModuleCount(),m=2,d="";
+  for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))d+="M"+(c+m)+" "+(r+m)+"h1v1h-1z";
+  var s=n+2*m;
+  return '<svg viewBox="0 0 '+s+' '+s+'" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect width="'+s+'" height="'+s+'" fill="'+light+'"/><path d="'+d+'" fill="'+dark+'"/></svg>';
+}
+function appUrl(){return APP_URL||location.href.split("#")[0]}
+
+/* ================= GRAIN ================= */
+(function(){
+  try{var c=document.createElement("canvas");c.width=c.height=180;var x=c.getContext("2d"),im=x.createImageData(180,180);
+    for(var i=0;i<im.data.length;i+=4){var v=Math.random()*255|0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}
+    x.putImageData(im,0,0);$("#grain").style.backgroundImage="url("+c.toDataURL()+")"}catch(e){}
+})();
+
+/* ================= SCENES (canvas film stills) ================= */
+var noiseC=null;
+function noise(){if(noiseC)return noiseC;noiseC=document.createElement("canvas");noiseC.width=noiseC.height=128;var x=noiseC.getContext("2d"),im=x.createImageData(128,128);
+  for(var i=0;i<im.data.length;i+=4){var v=Math.random()*255|0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=40}x.putImageData(im,0,0);return noiseC}
+function rnd(seed){return function(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646}}
+function vignette(x,w,h,k){var g=x.createRadialGradient(w/2,h/2,Math.min(w,h)*.25,w/2,h/2,Math.max(w,h)*.75);g.addColorStop(0,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,"+(k||.85)+")");x.fillStyle=g;x.fillRect(0,0,w,h)}
+function blinds(x,w,h,off,alpha,ang){x.save();x.translate(w*.5,h*.4);x.rotate(ang==null?-.42:ang);x.globalCompositeOperation="lighter";
+  var n=14,gap=h*.11,th=gap*.5;for(var i=-n;i<n;i++){var y=i*gap+(off%gap);var g=x.createLinearGradient(0,y,0,y+th);g.addColorStop(0,"rgba(255,236,205,0)");g.addColorStop(.5,"rgba(255,236,205,"+alpha+")");g.addColorStop(1,"rgba(255,236,205,0)");x.fillStyle=g;x.fillRect(-w*.35,y,w*.95,th)}
+  x.restore()}
+function grainOn(x,w,h){x.save();x.globalAlpha=.55;x.fillStyle=x.createPattern(noise(),"repeat");x.fillRect(0,0,w,h);x.restore()}
+function glow(x,cx,cy,r,col,a){var g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,col.replace("A",a));g.addColorStop(1,col.replace("A",0));x.fillStyle=g;x.beginPath();x.arc(cx,cy,r,0,7);x.fill()}
+var AMB="rgba(226,168,86,A)", WARM="rgba(255,226,180,A)", COOL="rgba(170,190,215,A)";
+
+var SCENES={
+  /* rain on the window, neon sign across the street */
+  rain:function(x,w,h,t){
+    var g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,"#101418");g.addColorStop(1,"#050607");x.fillStyle=g;x.fillRect(0,0,w,h);
+    var fl=(Math.sin(t*9)>.93||Math.sin(t*2.3)>.985)?.35:1;
+    glow(x,w*.68,h*.32,w*.42,AMB,.35*fl);
+    x.save();x.font="400 "+(w*.13)+"px Limelight, Georgia, serif";x.textAlign="center";x.shadowColor="rgba(226,168,86,"+(.9*fl)+")";x.shadowBlur=w*.04;x.fillStyle="rgba(255,214,150,"+(.92*fl)+")";x.fillText("JAZZ",w*.68,h*.37);x.restore();
+    var r=rnd(7);for(var i=0;i<26;i++){var bx=r()*w,by=h*.55+r()*h*.4,br=4+r()*w*.05;glow(x,bx,by,br,r()>.5?AMB:COOL,.18)}
+    x.strokeStyle="rgba(200,215,235,.18)";x.lineWidth=1;var r2=rnd(3);for(i=0;i<90;i++){var sx=r2()*w,sp=.4+r2()*.6,sy=((r2()*h+t*h*sp*1.4)%(h*1.2))-h*.1;x.beginPath();x.moveTo(sx,sy);x.lineTo(sx-2,sy+10+r2()*16);x.stroke()}
+    var r3=rnd(11);for(i=0;i<60;i++){var dx=r3()*w,dy=r3()*h,dr=1+r3()*3.4;x.fillStyle="rgba(230,235,245,.12)";x.beginPath();x.arc(dx,dy,dr,0,7);x.fill();x.fillStyle="rgba(255,255,255,.35)";x.beginPath();x.arc(dx-dr*.3,dy-dr*.3,dr*.3,0,7);x.fill()}
+    x.fillStyle="#020203";x.fillRect(w*.47,0,w*.03,h);x.fillRect(0,h*.47,w,h*.025);x.fillRect(0,0,w*.03,h);x.fillRect(w*.97,0,w*.03,h);
+    vignette(x,w,h,.8);
+  },
+  /* figure behind frosted glass door */
+  door:function(x,w,h,t){
+    x.fillStyle="#0c0c0d";x.fillRect(0,0,w,h);
+    var px=w*.2,pw=w*.6,py=h*.08,ph=h*.62;var g=x.createLinearGradient(0,py,0,py+ph);g.addColorStop(0,"#cfc7b8");g.addColorStop(1,"#8d877c");x.fillStyle=g;x.fillRect(px,py,pw,ph);
+    x.save();x.beginPath();x.rect(px,py,pw,ph);x.clip();var sway=Math.sin(t*.6)*w*.01;x.fillStyle="rgba(20,18,16,.85)";x.shadowColor="rgba(20,18,16,.9)";x.shadowBlur=w*.05;
+    var cx=w*.52+sway;x.beginPath();x.ellipse(cx,py+ph*.30,pw*.24,ph*.035,0,0,7);x.fill();x.fillRect(cx-pw*.11,py+ph*.14,pw*.22,ph*.16);x.beginPath();x.arc(cx,py+ph*.38,pw*.1,0,7);x.fill();
+    x.beginPath();x.moveTo(cx-pw*.36,py+ph);x.quadraticCurveTo(cx-pw*.32,py+ph*.52,cx,py+ph*.48);x.quadraticCurveTo(cx+pw*.32,py+ph*.52,cx+pw*.36,py+ph);x.fill();x.restore();
+    x.save();x.font="700 "+(w*.055)+"px 'Courier Prime', monospace";x.textAlign="center";x.fillStyle="rgba(15,15,15,.75)";x.fillText("N O I R",w*.5,py+ph*.1);x.font=(w*.028)+"px 'Courier Prime', monospace";x.fillText("PRIVATUS KLUBAS",w*.5,py+ph*.15);x.restore();
+    x.strokeStyle="#1e1e20";x.lineWidth=w*.035;x.strokeRect(px,py,pw,ph);x.fillStyle="#9a8a6a";x.beginPath();x.arc(w*.74,h*.8,w*.018,0,7);x.fill();
+    var fl=x.createLinearGradient(0,h*.72,0,h);fl.addColorStop(0,"#151413");fl.addColorStop(1,"#070707");x.fillStyle=fl;x.fillRect(0,h*.86,w,h*.14);
+    glow(x,w*.5,h*.97,w*.5,WARM,.12);vignette(x,w,h,.85);
+  },
+  /* martini under a spotlight */
+  glass:function(x,w,h,t){
+    x.fillStyle="#070708";x.fillRect(0,0,w,h);
+    x.save();x.globalCompositeOperation="lighter";var cone=x.createLinearGradient(0,0,0,h*.8);cone.addColorStop(0,"rgba(255,232,195,.32)");cone.addColorStop(1,"rgba(255,232,195,0)");x.fillStyle=cone;x.beginPath();x.moveTo(w*.44,0);x.lineTo(w*.56,0);x.lineTo(w*.84,h*.82);x.lineTo(w*.16,h*.82);x.closePath();x.fill();x.restore();
+    var r=rnd(5);x.save();x.globalCompositeOperation="lighter";for(var i=0;i<40;i++){var dx=w*(.3+r()*.4),dy=((r()*h*.8)-t*8*r()+h*.8)%(h*.8);x.fillStyle="rgba(255,240,215,"+(.15+r()*.25)+")";x.fillRect(dx,dy,1.3,1.3)}x.restore();
+    var cy=h*.40,cw=w*.21;x.save();var bg=x.createLinearGradient(0,cy,0,cy+h*.16);bg.addColorStop(0,"rgba(226,168,86,.85)");bg.addColorStop(1,"rgba(150,90,30,.9)");
+    x.beginPath();x.moveTo(w*.5-cw,cy);x.lineTo(w*.5+cw,cy);x.lineTo(w*.5,cy+h*.2);x.closePath();x.fillStyle="rgba(240,240,240,.10)";x.fill();x.strokeStyle="rgba(240,240,240,.75)";x.lineWidth=1.4;x.stroke();
+    x.beginPath();x.moveTo(w*.5-cw*.8,cy+h*.035);x.lineTo(w*.5+cw*.8,cy+h*.035);x.lineTo(w*.5,cy+h*.2);x.closePath();x.fillStyle=bg;x.fill();
+    x.fillStyle="#3d4a22";x.beginPath();x.arc(w*.5+cw*.15,cy+h*.09,w*.03,0,7);x.fill();x.strokeStyle="rgba(240,240,240,.8)";x.beginPath();x.moveTo(w*.5+cw*.15,cy+h*.09);x.lineTo(w*.5+cw*.6,cy-h*.04);x.stroke();
+    x.beginPath();x.moveTo(w*.5,cy+h*.2);x.lineTo(w*.5,cy+h*.37);x.strokeStyle="rgba(240,240,240,.7)";x.lineWidth=2;x.stroke();x.beginPath();x.ellipse(w*.5,cy+h*.375,cw*.55,h*.012,0,0,7);x.stroke();x.restore();
+    x.fillStyle="#141210";x.fillRect(0,h*.8,w,h*.2);x.fillStyle="rgba(226,168,86,.5)";x.fillRect(0,h*.8,w,1.5);
+    glow(x,w*.5,h*.82,w*.3,WARM,.25);x.save();x.globalAlpha=.18;x.scale(1,-1);x.translate(0,-h*1.6);x.fillStyle="rgba(226,168,86,.6)";x.beginPath();x.moveTo(w*.5-cw*.8,cy+h*.035);x.lineTo(w*.5+cw*.8,cy+h*.035);x.lineTo(w*.5,cy+h*.2);x.closePath();x.fill();x.restore();
+    vignette(x,w,h,.9);
+  },
+  /* piano keys, jazz night */
+  piano:function(x,w,h,t){
+    x.fillStyle="#060606";x.fillRect(0,0,w,h);
+    x.save();x.translate(w*.5,h*.55);x.transform(1,0,-.55,1,0,0);var kw=w*.07,n=18,y0=-h*.12;
+    for(var i=0;i<n;i++){var kx=(i-n/2)*kw,pressed=Math.floor(t*3+i*.7)%9===0;var g=x.createLinearGradient(0,y0,0,y0+h*.55);g.addColorStop(0,pressed?"#bdb6a8":"#ece6da");g.addColorStop(1,"#6c675e");x.fillStyle=g;x.fillRect(kx+1,y0+(pressed?2:0),kw-2,h*.55)}
+    for(i=0;i<n;i++){if([0,1,3,4,5].indexOf(i%7)<0)continue;var bx=(i-n/2)*kw+kw*.68;x.fillStyle="#0a0a0a";x.fillRect(bx,y0,kw*.62,h*.33);x.fillStyle="rgba(255,255,255,.12)";x.fillRect(bx+2,y0,2,h*.3)}
+    x.restore();x.fillStyle="#0d0c0b";x.fillRect(0,0,w,h*.36);x.fillStyle="rgba(226,168,86,.5)";x.fillRect(0,h*.36,w,1);
+    blinds(x,w,h,t*6,.10,-.3);glow(x,w*.15,h*.15,w*.5,WARM,.12);vignette(x,w,h,.92);
+  },
+  /* candle on a table, bokeh behind */
+  candle:function(x,w,h,t){
+    x.fillStyle="#08080a";x.fillRect(0,0,w,h);var r=rnd(21);
+    for(var i=0;i<22;i++){var bx=r()*w,by=r()*h*.55,br=w*(.03+r()*.07);x.fillStyle="rgba(226,168,86,"+(.05+r()*.12)+")";x.beginPath();x.arc(bx,by,br,0,7);x.fill()}
+    x.fillStyle="#131110";x.fillRect(0,h*.68,w,h*.32);var cx=w*.5,ct=h*.44,f=1+Math.sin(t*11)*.06+Math.sin(t*23)*.04;
+    glow(x,cx,ct,w*.55*f,AMB,.28);
+    var cg=x.createLinearGradient(cx-w*.05,0,cx+w*.05,0);cg.addColorStop(0,"#9b9281");cg.addColorStop(.4,"#efe8da");cg.addColorStop(1,"#7f7768");x.fillStyle=cg;x.fillRect(cx-w*.045,ct,w*.09,h*.26);
+    x.fillStyle="#2a2724";x.fillRect(cx-w*.08,h*.69,w*.16,h*.015);
+    x.save();x.translate(cx,ct-2);x.scale(1,f);var fg=x.createRadialGradient(0,-h*.03,0,0,-h*.03,h*.06);fg.addColorStop(0,"#fffbe8");fg.addColorStop(.35,"#ffd27a");fg.addColorStop(1,"rgba(255,140,40,0)");x.fillStyle=fg;x.beginPath();x.ellipse(Math.sin(t*5)*1.5,-h*.035,w*.02,h*.05,0,0,7);x.fill();x.restore();
+    x.save();x.globalAlpha=.9;x.strokeStyle="rgba(236,235,230,.6)";x.lineWidth=1.2;x.beginPath();x.ellipse(w*.24,h*.66,w*.11,h*.02,0,0,7);x.stroke();x.beginPath();x.moveTo(w*.17,h*.5);x.quadraticCurveTo(w*.17,h*.6,w*.24,h*.6);x.quadraticCurveTo(w*.31,h*.6,w*.31,h*.5);x.stroke();x.beginPath();x.moveTo(w*.24,h*.6);x.lineTo(w*.24,h*.66);x.stroke();
+    x.fillStyle="rgba(120,22,30,.75)";x.beginPath();x.moveTo(w*.175,h*.555);x.quadraticCurveTo(w*.18,h*.6,w*.24,h*.6);x.quadraticCurveTo(w*.3,h*.6,w*.305,h*.555);x.closePath();x.fill();x.restore();
+    vignette(x,w,h,.85);
+  },
+  /* back bar, bottles against a lit mirror */
+  bar:function(x,w,h,t){
+    x.fillStyle="#070707";x.fillRect(0,0,w,h);glow(x,w*.5,h*.35,w*.75,WARM,.22);
+    x.fillStyle="rgba(226,168,86,.35)";x.fillRect(0,h*.22,w,1);x.fillRect(0,h*.5,w,1);
+    var r=rnd(9);[[.22,.08],[.5,.36]].forEach(function(row){var bx=w*.04;while(bx<w*.96){var bw=w*(.05+r()*.035),bh=h*(.12+r()*.1),by=h*row[1]+(h*.14-bh)+h*.0;
+      x.fillStyle="rgba(8,8,8,.92)";x.beginPath();if(x.roundRect)x.roundRect(bx,h*row[0]-bh,bw,bh,[bw*.3,bw*.3,2,2]);else x.rect(bx,h*row[0]-bh,bw,bh);x.fill();x.fillRect(bx+bw*.35,h*row[0]-bh-h*.05,bw*.3,h*.05);
+      x.fillStyle="rgba(255,226,180,.18)";x.fillRect(bx+bw*.15,h*row[0]-bh+4,1.5,bh*.7);bx+=bw+w*(.01+r()*.03)}});
+    x.fillStyle="#0e0d0c";x.fillRect(0,h*.68,w,h*.32);x.fillStyle="rgba(226,168,86,.6)";x.fillRect(0,h*.68,w,2);
+    x.save();x.fillStyle="#020202";x.beginPath();var sx=w*.72;x.arc(sx,h*.53,w*.06,0,7);x.fill();x.beginPath();x.ellipse(sx,h*.485,w*.13,h*.018,0,0,7);x.fill();x.fillRect(sx-w*.065,h*.43,w*.13,h*.06);x.beginPath();x.moveTo(sx-w*.2,h*.7);x.quadraticCurveTo(sx-w*.16,h*.58,sx,h*.58);x.quadraticCurveTo(sx+w*.16,h*.58,sx+w*.2,h*.7);x.fill();x.restore();
+    blinds(x,w,h,t*5,.07,-.5);vignette(x,w,h,.9);
+  }
+};
+function paint(cv,kind,t){
+  var r=cv.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2),w=Math.max(1,Math.round((r.width||cv.clientWidth||300)*dpr)),h=Math.max(1,Math.round((r.height||cv.clientHeight||200)*dpr));
+  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
+  var x=cv.getContext("2d");x.setTransform(1,0,0,1,0,0);x.globalAlpha=1;x.globalCompositeOperation="source-over";x.shadowBlur=0;
+  SCENES[kind](x,w,h,t);grainOn(x,w,h);
+}
+/* animation loop: animates only canvases on screen */
+var live=[];
+function animate(cv,kind){live.push({cv:cv,kind:kind});paint(cv,kind,1.3)}
+var t0=performance.now();
+function loop(now){var t=(now-t0)/1000;live=live.filter(function(o){return document.body.contains(o.cv)});
+  live.forEach(function(o){var r=o.cv.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight&&r.width>0)paint(o.cv,o.kind,t)});requestAnimationFrame(loop)}
+if(!REDUCED)requestAnimationFrame(loop);
+var stillCanvases=[];
+function still(cv,kind){stillCanvases.push({cv:cv,kind:kind});paint(cv,kind,2.1)}
+window.addEventListener("resize",function(){live.concat(stillCanvases).forEach(function(o){if(document.body.contains(o.cv))paint(o.cv,o.kind,2.1)})});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){live.concat(stillCanvases).forEach(function(o){if(document.body.contains(o.cv))paint(o.cv,o.kind,2.1)})});
+
+/* ================= DATA ================= */
+var MENU=[
+ {c:"I",n:"Jautienos tartaras",d:"Rūkytas trynys, kaparėliai, ruginis traškutis",p:14,t:["šefo"]},
+ {c:"I",n:"Burata su keptomis slyvomis",d:"Lazdyno riešutai, čiobrelių medus",p:12,t:["vegetariška"]},
+ {c:"I",n:"Baltijos silkė",d:"Bulvių blynelis, raudonieji svogūnai, krienų grietinė",p:10,t:[]},
+ {c:"I",n:"Moliūgų sriuba",d:"Skrudintos sėklos, šalavijų aliejus",p:8,t:["veganiška"]},
+ {c:"II",n:"Antis su vyšniomis",d:"Krūtinėlė, šakninių daržovių tyrė, vyšnių padažas",p:26,t:["šefo"]},
+ {c:"II",n:"Jautienos nugarinė",d:"250 g, juodųjų pipirų padažas, trigubai keptos bulvės",p:34,t:["be glitimo"]},
+ {c:"II",n:"Upėtakis ant grilio",d:"Rudasis sviestas, krapai, keptas poras",p:22,t:[]},
+ {c:"II",n:"Miško grybų rizotas",d:"Baravykai, brandintas sūris, trumų aliejus",p:19,t:["vegetariška"]},
+ {c:"II",n:"Lėtai troškinti žandai",d:"Raudonasis vynas, perlinės kruopos, morkos",p:24,t:[]},
+ {c:"III",n:"Juodasis šokoladas",d:"Fondantas, sūdyta karamelė, vanilės ledai",p:9,t:["šefo"]},
+ {c:"III",n:"Šakotis su vyšniomis",d:"Plakta grietinėlė, vyšnių uogienė",p:8,t:[]},
+ {c:"III",n:"Sūrių lėkštė",d:"Trys Lietuvos sūriai, medus, graikiniai riešutai",p:13,t:["vegetariška"]},
+ {c:"B",n:"Noir Negroni",d:"Džinas, kartusis likeris, vermutas, apelsino žievelė",p:11,t:["kokteilis"]},
+ {c:"B",n:"Espresso Martini",d:"Degtinė, kavos likeris, šviežias espresso",p:11,t:["kokteilis"]},
+ {c:"B",n:"Detektyvo Old Fashioned",d:"Burbonas, demerara sirupas, angostūra",p:12,t:["kokteilis"]},
+ {c:"B",n:"Namų vynas, taurė",d:"Raudonas arba baltas, 150 ml",p:7,t:[]},
+ {c:"B",n:"Šaltalankių limonadas",d:"Be alkoholio, 400 ml",p:5,t:["be alkoholio"]}
+];
+var ACTS={"I":{n:"Užkandžiai",s:"Pirmas veiksmas"},"II":{n:"Pagrindiniai",s:"Antras veiksmas"},"III":{n:"Desertai",s:"Finalas"},"B":{n:"Baras",s:"Po seanso"}};
+var EVENTS=[
+ {dow:4,time:"20:00",n:"Džiazo trio",d:"Gyvai, trys setai iki vidurnakčio. Rekomenduojame rezervuoti."},
+ {dow:5,time:"19:00",n:"Degustacinė vakarienė",d:"7 patiekalai su vyno derinimu, 79 € asmeniui."},
+ {dow:6,time:"21:00",n:"Noir kino naktis",d:"Klasikinis filmas didžiajame ekrane ir kokteilių meniu."},
+ {dow:0,time:"13:00",n:"Šeimų pietūs",d:"Vaikų meniu ir spalvinimo lapai prie kiekvieno stalo."}
+];
+var SOC=[
+ {n:"Instagram",h:"@noir.vilnius",u:"https://www.instagram.com/",i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".9" fill="currentColor"/></svg>'},
+ {n:"Facebook",h:"Noir Vilnius",u:"https://www.facebook.com/",i:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8h3V4h-3c-2.8 0-4.5 1.8-4.5 4.6V11H7v4h2.5v6h4v-6h3l.5-4h-3.5V9c0-.6.4-1 1-1z"/></svg>'},
+ {n:"TikTok",h:"@noir.vilnius",u:"https://www.tiktok.com/",i:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.3 2.2 1.7 3.8 4 4v3.2c-1.5 0-2.9-.4-4-1.2V15a6 6 0 1 1-6-6c.3 0 .7 0 1 .1v3.3a2.8 2.8 0 1 0 1.8 2.6V3z"/></svg>'},
+ {n:"Spotify",h:"Noir vakaro grojaraštis",u:"https://open.spotify.com/",i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M7.5 9.5c3-1 6.5-.7 9 .8M8 12.6c2.5-.7 5.2-.4 7.3.8M8.6 15.4c1.9-.5 3.8-.3 5.4.6"/></svg>'}
+];
+var TABLES=[
+ {id:1,x:12,y:24,s:2,sh:"r",z:"Prie baro"},{id:2,x:27,y:24,s:2,sh:"r",z:"Prie baro"},{id:3,x:42,y:24,s:2,sh:"r",z:"Prie baro"},{id:4,x:57,y:24,s:2,sh:"r",z:"Prie baro"},
+ {id:5,x:13,y:40,s:4,sh:"s",z:"Prie lango"},{id:6,x:13,y:58,s:4,sh:"s",z:"Prie lango"},{id:7,x:13,y:76,s:4,sh:"s",z:"Prie lango"},
+ {id:8,x:38,y:44,s:4,sh:"r",z:"Salės centras"},{id:9,x:60,y:44,s:4,sh:"r",z:"Salės centras"},{id:10,x:84,y:38,s:2,sh:"r",z:"Prie scenos"},
+ {id:11,x:38,y:66,s:2,sh:"r",z:"Salės centras"},{id:12,x:60,y:68,s:6,sh:"s",z:"Salės centras"},{id:13,x:86,y:60,s:4,sh:"r",z:"Prie scenos"},
+ {id:14,x:38,y:86,s:8,sh:"s",z:"Ložė"}
+];
+var KINDS=[{k:"Gimtadienis",d:"Tortas ir dekoracijos"},{k:"Krikštynos",d:"Šeimos šventė"},{k:"Įmonės vakarėlis",d:"Komandai ir partneriams"},{k:"Sužadėtuvės",d:"Vakaras dviem ir draugams"}];
+var PKGS=[{k:"Klasika",d:"3 patiekalai, kava ir arbata",p:45},{k:"Noir",d:"4 patiekalai, 2 taurės vyno",p:65},{k:"Premjera",d:"6 patiekalai, vyno derinimas, kokteilis",p:89}];
+var ADDS=[{k:"Šventinis tortas",p:60},{k:"Dekoracijos ir gėlės",p:120},{k:"Fotografas, 2 val.",p:180},{k:"DJ iki 01:00",p:250},{k:"Džiazo trio",p:400}];
+
+/* ================= HOME ================= */
+var today=new Date();today.setHours(0,0,0,0);
+function nextDow(dow){var d=new Date(today);d.setDate(d.getDate()+((dow-d.getDay()+7)%7));return d}
+function renderHome(){
+  var tonightEv=EVENTS.find(function(e){return e.dow===today.getDay()});
+  $("#tonight").innerHTML=tonightEv
+    ?'<div class="clock">'+tonightEv.time+'<small>ŠIĄNAKT</small></div><div><b>'+tonightEv.n+'</b><span>'+tonightEv.d+'</span></div><button class="btn btn-lamp" type="button" data-ev="'+EVENTS.indexOf(tonightEv)+'">Vieta</button>'
+    :'<div class="clock">18:00<small>ŠIĄNAKT</small></div><div><b>Tylus vakaras</b><span>Žvakės, vinilas ir laisvi staliukai prie lango.</span></div><button class="btn btn-lamp" type="button" data-go="rezervuoti" data-mode="stalas">Vieta</button>';
+  var sorted=EVENTS.slice().sort(function(a,b){return nextDow(a.dow)-nextDow(b.dow)});
+  $("#prog").innerHTML=sorted.map(function(e){var d=nextDow(e.dow);return '<button type="button" class="pitem" data-ev="'+EVENTS.indexOf(e)+'"><span class="d">'+DOW[d.getDay()]+'<b>'+d.getDate()+'</b></span><span><h4>'+e.n+' · '+e.time+'</h4><p>'+e.d+'</p></span><span class="arrow">→</span></button>'}).join("");
+  $("#socials").innerHTML=SOC.map(function(s){return '<a class="soc" href="'+s.u+'" target="_blank" rel="noopener"><span class="ic">'+s.i+'</span><span><b>'+s.n+'</b><small>'+s.h+'</small></span><span class="go">Atidaryti ↗</span></a>'}).join("");
+  $("#chef").innerHTML=MENU.filter(function(m){return m.t.indexOf("šefo")>-1}).map(dish).join("");
+}
+
+document.addEventListener("click",function(e){var b=e.target.closest("[data-ev]");if(!b)return;var ev=EVENTS[+b.dataset.ev];
+  st.date=iso(nextDow(ev.dow));st.time=ev.time;st.table=null;setMode("stalas");show("rezervuoti");renderDays();renderSlots();renderPlan();toast(ev.n+": "+nice(st.date)+", "+ev.time)});
+
+/* ================= MENU ================= */
+var act="Visi";
+function dish(m){return '<div class="dish"><div class="line"><h4>'+esc(m.n)+'</h4><span class="dots"></span><span class="pr">'+m.p+' €</span></div><p>'+esc(m.d)+'</p>'+(m.t.length?'<div class="marks">'+m.t.map(function(t){return '<span class="mark'+(t==="šefo"?" star":"")+'">'+(t==="šefo"?"★ šefo pasirinkimas":t)+'</span>'}).join("")+'</div>':"")+'</div>'}
+$("#acts").innerHTML=["Visi","I","II","III","B"].map(function(k){return '<button type="button" class="act" data-a="'+k+'" aria-pressed="'+(k===act)+'">'+(k==="Visi"?"Viskas":ACTS[k].n)+'</button>'}).join("");
+$("#acts").addEventListener("click",function(e){var b=e.target.closest(".act");if(!b)return;act=b.dataset.a;$$("#acts .act").forEach(function(x){x.setAttribute("aria-pressed",x===b)});renderMenu()});
+$("#q").addEventListener("input",renderMenu);
+function renderMenu(){
+  var q=ascii($("#q").value.trim().toLowerCase()),out="",last="";
+  var items=MENU.filter(function(m){return(act==="Visi"||m.c===act)&&(!q||ascii((m.n+" "+m.d).toLowerCase()).indexOf(q)>-1)});
+  if(!items.length){$("#menu").innerHTML='<p class="nores">Byla tuščia. Pabandykite kitą žodį.</p>';return}
+  items.forEach(function(m){if(m.c!==last){var a=ACTS[m.c];out+='<div class="scene-h"><span class="no">'+(m.c==="B"?"★":m.c)+'</span><h3>'+a.n+'</h3><p>'+a.s+'</p></div>';last=m.c}out+=dish(m)});
+  $("#menu").innerHTML=out;
+}
+
+/* ================= RESERVE: TABLE ================= */
+var st={date:iso(today),time:null,guests:2,table:null};
+function renderDays(){
+  var h="";for(var i=0;i<21;i++){var d=new Date(today);d.setDate(d.getDate()+i);var k=iso(d);h+='<button type="button" class="day" data-d="'+k+'" aria-pressed="'+(k===st.date)+'"><small>'+(i===0?"Šian.":DOW[d.getDay()])+'</small><b>'+d.getDate()+'</b></button>'}
+  $("#days").innerHTML=h;$("#lDate").textContent=nice(st.date);
+  var s=$("#days").querySelector('[aria-pressed="true"]');if(s){var p=$("#days");p.scrollLeft=Math.max(0,s.offsetLeft-p.clientWidth/2+s.clientWidth/2)}
+}
+function slotsList(){var o=[];for(var h=12;h<=21;h++){o.push(h+":00");o.push(h+":30")}return o}
+function slotBusy(t){if(st.date===iso(today)){var n=new Date(),p=t.split(":");if(+p[0]*60+ +p[1]<=n.getHours()*60+n.getMinutes()+30)return true}return hsh(st.date+t)%5===0}
+function renderSlots(){$("#slots").innerHTML=slotsList().map(function(t){var b=slotBusy(t);if(b&&st.time===t)st.time=null;return '<button type="button" class="slot" '+(b?"disabled":"")+' aria-pressed="'+(st.time===t)+'">'+t+'</button>'}).join("");$("#lTime").textContent=st.time||"pasirinkite"}
+function tBusy(t){return st.time&&hsh(st.date+st.time+"#"+t.id)%3===0}
+function renderPlan(){
+  var h='<div class="floorlines"></div><div class="barc">BARAS</div><div class="stage">SCENA</div><div class="win"></div><div class="door"></div><span class="lbl" style="left:9px;top:18%">Langai</span><span class="lbl" style="right:9%;bottom:8px">Įėjimas</span>';
+  TABLES.forEach(function(t){var busy=tBusy(t),small=t.s<st.guests,w,hh;
+    if(t.sh==="r"){w=t.s>=4?14:10.5;hh=w}else{w=t.s>=8?30:(t.s>=6?20:11);hh=t.s>=6?11:14}
+    if((busy||small)&&st.table===t.id)st.table=null;
+    var cls="tbl "+t.sh+(busy?" busy":"")+(!busy&&small?" small":"")+(!st.time?" wait":"");
+    h+='<button type="button" class="'+cls+'" data-t="'+t.id+'" aria-pressed="'+(st.table===t.id)+'" style="left:'+t.x+'%;top:'+t.y+'%;width:'+w+'%;height:'+hh+'%" aria-label="Staliukas '+t.id+', '+t.s+' vietos'+(busy?', užimtas':'')+'">'+t.id+'<small>'+t.s+'v</small></button>'});
+  $("#plan").innerHTML=h;
+  var t=TABLES.find(function(x){return x.id===st.table});
+  $("#lTable").textContent=t?("Nr. "+t.id+" · "+t.z):(st.time?"paspauskite plane":"pirma pasirinkite laiką");
+  $("#gOut").textContent=sv(st.guests);
+  $("#recap").textContent=nice(st.date)+(st.time?" · "+st.time:"")+" · "+sv(st.guests)+(t?" · staliukas "+t.id:"");
+}
+$("#days").addEventListener("click",function(e){var b=e.target.closest(".day");if(!b)return;st.date=b.dataset.d;renderDays();renderSlots();renderPlan()});
+$("#slots").addEventListener("click",function(e){var b=e.target.closest(".slot");if(!b||b.disabled)return;st.time=b.textContent;renderSlots();renderPlan()});
+$("#plan").addEventListener("click",function(e){var b=e.target.closest(".tbl");if(!b)return;var t=TABLES.find(function(x){return x.id===+b.dataset.t});
+  if(!st.time)return toast("Pirmiausia pasirinkite laiką");if(tBusy(t))return toast("Staliukas "+t.id+" tuo metu užimtas");if(t.s<st.guests)return toast("Staliukas "+t.id+" skirtas iki "+t.s+" svečių");
+  st.table=t.id;renderPlan();if(navigator.vibrate)try{navigator.vibrate(12)}catch(_){}} );
+$("#gm").addEventListener("click",function(){if(st.guests>1){st.guests--;renderPlan()}});
+$("#gp").addEventListener("click",function(){if(st.guests<8){st.guests++;renderPlan()}else toast("Daugiau nei 8 svečiams rinkitės „Šventė“")});
+function code(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="";for(var i=0;i<5;i++)s+=a[Math.random()*a.length|0];return "N-"+s}
+function okPhone(p){return /^[+\d][\d\s-]{7,}$/.test(p.trim())}
+$("#fStalas").addEventListener("submit",function(e){e.preventDefault();
+  var n=$("#sName").value.trim(),p=$("#sPhone").value.trim(),er="";
+  if(!st.time)er="Pasirinkite laiką (3 žingsnis).";else if(!st.table)er="Pasirinkite staliuką plane (4 žingsnis).";else if(!n)er="Įrašykite vardą.";else if(!okPhone(p))er="Patikrinkite telefono numerį.";
+  $("#sErr").textContent=er;if(er)return;var t=TABLES.find(function(x){return x.id===st.table});
+  var b={code:code(),kind:"stalas",date:st.date,time:st.time,guests:st.guests,table:t.id,zone:t.z,name:n,phone:p,note:$("#sNote").value.trim()};
+  addBooking(b);ticket(b,true);st.table=null;$("#sNote").value="";renderPlan()});
+
+/* ================= RESERVE: EVENT ================= */
+var ev={kind:"Gimtadienis",pkg:"Noir"};
+$("#kinds").innerHTML=KINDS.map(function(k){return '<button type="button" class="kind" data-k="'+k.k+'" aria-pressed="'+(k.k===ev.kind)+'"><b>'+k.k+'</b><small>'+k.d+'</small></button>'}).join("");
+$("#pkgs").innerHTML=PKGS.map(function(p){return '<button type="button" class="pk" data-k="'+p.k+'" aria-pressed="'+(p.k===ev.pkg)+'"><span class="rb"></span><span><b>'+p.k+'</b><small>'+p.d+'</small></span><span class="pr">'+p.p+' €/asm.</span></button>'}).join("");
+$("#addons").innerHTML=ADDS.map(function(a,i){return '<div class="addon"><label for="ad'+i+'">'+a.k+'<small>+'+eur(a.p)+'</small></label><input class="tog" type="checkbox" id="ad'+i+'" data-i="'+i+'"'+(i===0?" checked":"")+'></div>'}).join("");
+$("#kinds").addEventListener("click",function(e){var b=e.target.closest(".kind");if(!b)return;ev.kind=b.dataset.k;$$("#kinds .kind").forEach(function(x){x.setAttribute("aria-pressed",x===b)})});
+$("#pkgs").addEventListener("click",function(e){var b=e.target.closest(".pk");if(!b)return;ev.pkg=b.dataset.k;$$("#pkgs .pk").forEach(function(x){x.setAttribute("aria-pressed",x===b)});bill()});
+$("#addons").addEventListener("change",bill);$("#eG").addEventListener("input",bill);
+var mn=new Date(today);mn.setDate(mn.getDate()+3);$("#eDate").min=iso(mn);var df=new Date(today);df.setDate(df.getDate()+((6-df.getDay()+7)%7)+14);$("#eDate").value=iso(df);
+function bill(){
+  var g=+$("#eG").value,p=PKGS.find(function(x){return x.k===ev.pkg}),food=g*p.p,ex=[],exs=0;
+  $$("#addons .tog").forEach(function(s){if(s.checked){var a=ADDS[+s.dataset.i];ex.push(a);exs+=a.p}});
+  var room=g>30?150:0,tot=food+exs+room;ev.total=tot;ev.extras=ex.map(function(a){return a.k});
+  $("#eGOut").textContent=g+" svečių";
+  $("#bill").innerHTML='<div class="row"><span>'+g+' × '+p.p+' € · '+p.k+'</span><span>'+eur(food)+'</span></div>'+ex.map(function(a){return '<div class="row"><span>'+a.k+'</span><span>'+eur(a.p)+'</span></div>'}).join("")+'<div class="row"><span>Salės nuoma'+(room?"":" (iki 30 svečių)")+'</span><span>'+(room?eur(room):"0 €")+'</span></div><div class="sum"><span>Preliminariai</span><b>'+eur(tot)+'</b></div>';
+}
+$("#fSvente").addEventListener("submit",function(e){e.preventDefault();
+  var n=$("#eName").value.trim(),p=$("#ePhone").value.trim(),d=$("#eDate").value,er="";
+  if(!d||d<$("#eDate").min)er="Šventę užsakykite bent 3 dienos iš anksto.";else if(!n)er="Įrašykite vardą.";else if(!okPhone(p))er="Patikrinkite telefono numerį.";
+  $("#eErr").textContent=er;if(er)return;
+  var b={code:code(),kind:"svente",type:ev.kind,date:d,time:$("#eTime").value,guests:+$("#eG").value,pkg:ev.pkg,extras:ev.extras,total:ev.total,name:n,phone:p};
+  addBooking(b);ticket(b,true)});
+function setMode(m){$("#tabStalas").setAttribute("aria-selected",m==="stalas");$("#tabSvente").setAttribute("aria-selected",m==="svente");$("#fStalas").hidden=m!=="stalas";$("#fSvente").hidden=m!=="svente"}
+$("#tabStalas").addEventListener("click",function(){setMode("stalas")});$("#tabSvente").addEventListener("click",function(){setMode("svente")});
+
+/* ================= BOOKINGS ================= */
+var books=store("noir2.bookings")||[];
+function addBooking(b){books.unshift(b);store("noir2.bookings",books);renderMine()}
+function bTitle(b){return b.kind==="stalas"?("Staliukas "+b.table+" · "+sv(b.guests)):(b.type+" · "+b.guests+" svečių")}
+function renderMine(){
+  $("#myN").textContent=books.length?books.length+" byl.":"";
+  $("#mine").innerHTML=books.length?books.map(function(b,i){return '<div class="case"><span class="no">BYLA '+b.code+'</span><h4>'+esc(bTitle(b))+'</h4><p>'+nice(b.date)+' · '+b.time+'</p><div class="ops"><button class="mini" type="button" data-s="'+i+'">Bilietas</button><button class="mini x" type="button" data-x="'+i+'">Atšaukti</button></div></div>'}).join("")
+    :'<div class="empty-case">Čia atsiras jūsų rezervacijos ir bilietai su QR kodu, kurį parodysite prie durų.</div>';
+}
+$("#mine").addEventListener("click",function(e){var s=e.target.closest("[data-s]"),x=e.target.closest("[data-x]");if(s)ticket(books[+s.dataset.s],false);if(x)askCancel(+x.dataset.x)});
+function askCancel(i){var b=books[i];
+  $("#sheet").innerHTML='<div class="grab"></div><h3 class="h3" id="shTitle">Atšaukti rezervaciją?</h3><p class="sub">'+esc(bTitle(b))+', '+nice(b.date)+' '+b.time+'. Vieta atsilaisvins kitiems svečiams.</p><div style="display:grid;gap:10px;margin-top:22px"><button class="btn btn-lamp btn-wide" type="button" id="doX">Taip, atšaukti</button><button class="btn btn-line btn-wide" type="button" data-close>Palikti</button></div>';
+  openSheet();$("#doX").addEventListener("click",function(){books.splice(i,1);store("noir2.bookings",books);renderMine();closeSheet();toast("Rezervacija atšaukta")})}
+function ticket(b,fresh){
+  var data="NOIR|"+b.code+"|"+b.date+" "+b.time+"|"+(b.kind==="stalas"?("Stalas "+b.table+"|"+b.guests+" sv."):(b.type+"|"+b.guests+" sv.|"+b.pkg))+"|"+b.name;
+  var rows=b.kind==="stalas"?[["Data",nice(b.date)],["Laikas",b.time],["Svečiai",sv(b.guests)],["Vieta","Nr. "+b.table+", "+b.zone.toLowerCase()],["Vardas",b.name]]
+    :[["Proga",b.type],["Data",nice(b.date)],["Pradžia",b.time],["Svečiai",String(b.guests)],["Meniu",b.pkg],["Kaina",eur(b.total)]];
+  $("#sheet").innerHTML='<div class="grab"></div>'+(fresh?'<div style="text-align:center"><span class="stamp">'+(b.kind==="stalas"?"PATVIRTINTA":"UŽKLAUSA PRIIMTA")+'</span></div>':"")+
+   '<h3 class="h3" id="shTitle" style="text-align:center">'+(fresh?(b.kind==="stalas"?"Jūsų staliukas laukia":"Susisieksime per 24 val."):"Jūsų bilietas")+'</h3>'+
+   '<p class="sub" style="text-align:center;margin-inline:auto">'+(b.kind==="stalas"?"Parodykite QR kodą prie durų, ir mes palydėsime prie staliuko.":"QR kode yra jūsų užklausos numeris. Vadybininkas patikslins detales.")+'</p>'+
+   '<div class="ticket"><div class="tt"><b>NOIR</b><span>'+(b.kind==="stalas"?"ĮĖJIMAS":"ŠVENTĖ")+'</span></div><div class="tb"><dl>'+rows.map(function(r){return '<dt>'+r[0]+'</dt><dd>'+esc(r[1])+'</dd>'}).join("")+'</dl><div class="qr">'+qrSvg(data)+'</div></div><div class="perf"></div><div class="tf"><span class="code">'+b.code+'</span><small>PILIES G. 12</small></div></div>'+
+   '<button class="btn btn-lamp btn-wide" type="button" data-close>Gerai</button>';
+  openSheet()}
+function openSheet(){$("#veil").hidden=false;var f=$("#sheet").querySelector("button");if(f)f.focus({preventScroll:true})}
+function closeSheet(){$("#veil").hidden=true}
+$("#veil").addEventListener("click",function(e){if(e.target===this||e.target.closest("[data-close]"))closeSheet()});
+
+/* ================= GALLERY ================= */
+var GALLERY=[
+ {kind:"rain",cap:"Lietinga naktis · filmas 0:20",film:true,wide:true},
+ {kind:"glass",cap:"Martini po prožektoriumi"},
+ {kind:"door",cap:"Įėjimas iš kiemo"},
+ {kind:"piano",cap:"Ketvirtadienio džiazas",wide:true},
+ {kind:"candle",cap:"Staliukas prie lango"},
+ {kind:"bar",cap:"Baras po vidurnakčio"}
+];
+var mine=(store("noir2.photos")||[]).map(function(s){return{src:s,cap:"Jūsų kadras"}});
+function items(){return GALLERY.concat(mine)}
+function renderGal(){
+  var g=$("#gal");g.innerHTML="";
+  items().forEach(function(it,i){var b=document.createElement("button");b.type="button";b.className="still"+(it.wide?" w":"");b.setAttribute("aria-label",it.cap);
+    b.innerHTML=(it.src?(it.video?'<video src="'+it.src+'" muted playsinline></video><span class="playb"></span>':'<img alt="" src="'+it.src+'">'):'<canvas></canvas>'+(it.film?'<span class="playb"></span>':""))+'<span class="num">'+pad2(i+1)+'</span><span class="cap">'+esc(it.cap)+'</span>';
+    b.addEventListener("click",function(){openLb(i)});g.appendChild(b);
+    if(!it.src)requestAnimationFrame(function(){still(b.querySelector("canvas"),it.kind)})});
+  var add=document.createElement("label");add.className="add";add.innerHTML='<b>+</b>Pridėti savo nuotrauką ar video<input type="file" id="up" accept="image/*,video/*" multiple>';g.appendChild(add);
+  add.querySelector("input").addEventListener("change",upload);
+}
+function upload(e){[].slice.call(e.target.files||[]).forEach(function(f){
+  if(f.type.indexOf("video")===0){mine.push({src:URL.createObjectURL(f),video:true,cap:"Jūsų video"});renderGal();toast("Video pridėtas, kol puslapis atidarytas");return}
+  var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,1000/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height);mine.push({src:c.toDataURL("image/jpeg",.8),cap:"Jūsų kadras"});
+    var ok=store("noir2.photos",mine.filter(function(m){return!m.video}).map(function(m){return m.src}));renderGal();toast(ok?"Kadras pridėtas":"Kadras pridėtas, bet neišsaugotas naršyklėje")};im.src=r.result};r.readAsDataURL(f)})}
+var lbi=0;
+function openLb(i){lbi=i;$("#lb").hidden=false;drawLb()}
+function drawLb(){var all=items(),it=all[lbi],f=$("#lbF");
+  if(it.src)f.innerHTML=it.video?'<video src="'+it.src+'" controls autoplay playsinline></video>':'<img alt="'+esc(it.cap)+'" src="'+it.src+'">';
+  else{f.innerHTML='<canvas></canvas>';var cv=f.querySelector("canvas");requestAnimationFrame(function(){animate(cv,it.kind)})}
+  $("#lbC").textContent=it.cap;$("#lbN").textContent="KADRAS "+pad2(lbi+1)+" / "+pad2(all.length)}
+function stepLb(d){var n=items().length;lbi=(lbi+d+n)%n;drawLb()}
+$("#lbX").addEventListener("click",function(){$("#lb").hidden=true;$("#lbF").innerHTML=""});
+$("#lbP").addEventListener("click",function(){stepLb(-1)});$("#lbNx").addEventListener("click",function(){stepLb(1)});
+var tx=null;$("#lbS").addEventListener("touchstart",function(e){tx=e.touches[0].clientX},{passive:true});
+$("#lbS").addEventListener("touchend",function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>45)stepLb(dx<0?1:-1);tx=null});
+document.addEventListener("keydown",function(e){if(!$("#lb").hidden){if(e.key==="ArrowRight")stepLb(1);if(e.key==="ArrowLeft")stepLb(-1);if(e.key==="Escape")$("#lbX").click()}else if(!$("#veil").hidden&&e.key==="Escape")closeSheet()});
+
+/* ================= QR VIEW ================= */
+var tent=1;
+function renderQr(){var u=appUrl();$("#appQr").innerHTML=qrSvg(u);$("#appUrl").value=u;
+  $("#tpick").innerHTML=TABLES.map(function(t){return '<button type="button" aria-pressed="'+(t.id===tent)+'">'+t.id+'</button>'}).join("");
+  $("#tentQr").innerHTML=qrSvg(u);$("#tentNr").textContent="STALIUKAS "+pad2(tent)}
+$("#tpick").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;tent=+b.textContent;renderQr()});
+$("#tryTable").addEventListener("click",function(){enterTable(tent)});
+$("#copy").addEventListener("click",function(){var i=$("#appUrl");try{navigator.clipboard.writeText(i.value).then(function(){toast("Nuoroda nukopijuota")},function(){i.select();toast("Pažymėta, nukopijuokite")})}catch(_){i.select();toast("Pažymėta, nukopijuokite")}});
+var curTable=null;
+function enterTable(n){curTable=n;$("#tableNo").textContent="staliuko Nr. "+n;$("#tablebar").hidden=false;show("meniu");setHash("stalas-"+n)}
+$("#callWaiter").addEventListener("click",function(){var b=this;toast("Padavėjas jau eina prie staliuko "+curTable);b.textContent="Pakviesta ✓";b.disabled=true;setTimeout(function(){b.textContent="Kviesti padavėją";b.disabled=false},20000)});
+
+/* ================= STATUS ================= */
+function status(){var n=new Date(),d=n.getDay(),m=n.getHours()*60+n.getMinutes();function c(x){return(x===5||x===6)?1500:(x===0?1320:1380)}
+  var open=false,until="";if(m<60&&c((d+6)%7)>1440){open=true;until="01:00"}else if(m>=720&&m<c(d)){open=true;until=c(d)>=1440?"01:00":(c(d)/60)+":00"}
+  $("#lamp").classList.toggle("on",open);$("#lampTxt").textContent=open?"Atidaryta iki "+until:"Atsidarome 12:00"}
+
+/* ================= NAVIGATION ================= */
+var VIEWS=["pradzia","meniu","rezervuoti","qr"],cur=null;
+function setHash(h){try{history.replaceState(null,"","#"+h)}catch(_){}}
+function show(v){
+  if(VIEWS.indexOf(v)<0)v="pradzia";
+  VIEWS.forEach(function(x){$("#v-"+x).classList.toggle("on",x===v)});
+  $$(".tab").forEach(function(t){if(t.dataset.go===v)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});
+  if(v==="qr")renderQr();
+  if(v!==cur){window.scrollTo(0,0);cur=v}
+  if(!(v==="meniu"&&curTable))setHash(v);
+  requestAnimationFrame(function(){stillCanvases.forEach(function(o){if(document.body.contains(o.cv)&&o.cv.offsetParent)paint(o.cv,o.kind,2.1)})});
+}
+document.addEventListener("click",function(e){var b=e.target.closest("[data-go]");if(!b)return;e.preventDefault();if(b.dataset.mode)setMode(b.dataset.mode);show(b.dataset.go)});
+window.addEventListener("hashchange",fromHash);
+function fromHash(){var h=(location.hash||"").slice(1),m=h.match(/^stalas-(\d{1,2})$/);if(m){enterTable(+m[1]);return}show(h||"pradzia")}
+
+/* ================= INIT ================= */
+renderMenu();renderDays();renderSlots();renderPlan();bill();renderMine();renderHome();status();setInterval(status,60000);
+fromHash();
+animate($("#heroCanvas"),"rain");
+})();
+</script>
+</body></html>
